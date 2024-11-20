@@ -1,0 +1,63 @@
+import React, { useEffect, useState } from 'react'
+import ReactDOM from 'react-dom/client'
+import { bitable, CurrencyCode, FieldType, ICurrencyField, ICurrencyFieldMeta } from '@lark-base-open/js-sdk';
+import { Alert, AlertProps, Button, Select } from 'antd';
+import { CURRENCY } from './const';
+import { getExchangeRate } from './exchange-api';
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <LoadApp/>
+  </React.StrictMode>
+)
+
+function LoadApp() {
+  const [info, setInfo] = useState('get table name, please waiting ....'); /*提示信息 */
+  const [alertType, setAlertType] = useState<AlertProps['type']>('info'); /*提示信息类型 */
+  const [currencyFieldMetaList, setMetaList] = useState<ICurrencyFieldMeta[]>([]) /*货币字段列表 */
+  const [selectFieldId, setSelectFieldId] = useState<string>(); /*选择的货币字段id */
+  const [currency, setCurrency] = useState<CurrencyCode>(); /*选择的货币类型 */
+
+  useEffect(() => {
+    const fn = async () => {
+      const table = await bitable.base.getActiveTable(); /*获取当前激活的表 */
+      const tableName = await table.getName(); /*获取当前激活的表名 */
+      setInfo(`The table Name is ${tableName}`); /*设置提示信息 */
+      setAlertType('success'); /*设置提示信息类型 */
+      const fieldMetaList = await table.getFieldMetaListByType<ICurrencyFieldMeta>(FieldType.Currency); /*获取货币字段列表 */
+      setMetaList(fieldMetaList); /*设置货币字段列表 */
+    };
+    fn();
+  }, []);
+
+  const formatFieldMetaList = (metaList: ICurrencyFieldMeta[]) => {
+    return metaList.map(meta => ({ label: meta.name, value: meta.id }));
+  };  /*格式化货币字段列表 */
+
+  const transform = async () => {
+    if (!selectFieldId || !currency) return;
+    const table = await bitable.base.getActiveTable();
+    const currencyField = await table.getField<ICurrencyField>(selectFieldId);
+    const currentCurrency = await currencyField.getCurrencyCode();
+    await currencyField.setCurrencyCode(currency);
+    const ratio = await getExchangeRate(currentCurrency, currency);
+    if (!ratio) return;
+    const recordIdList = await table.getRecordIdList();
+    for (const recordId of recordIdList) {
+      const currentVal = await currencyField.getValue(recordId);
+      await currencyField.setValue(recordId, currentVal * ratio);
+    }
+  } /*转换货币 */
+
+  return <div>
+    <div style={{ margin: 10 }}>
+      <div>Select Field</div>
+      <Select style={{ width: 120 }} onSelect={setSelectFieldId} options={formatFieldMetaList(currencyFieldMetaList)}/>
+    </div>
+    <div style={{ margin: 10 }}>
+      <div>Select Currency</div>
+      <Select options={CURRENCY} style={{ width: 120 }} onSelect={setCurrency}/>
+      <Button style={{ marginLeft: 10 }} onClick={transform}>transform</Button>
+    </div>
+  </div>
+}
