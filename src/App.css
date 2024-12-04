@@ -1,0 +1,57 @@
+.app-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap; /* 允许换行 */
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  padding: 4px; /* 增加内边距 */
+  min-height: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px; /* 增加填充 */
+  margin: 2px 4px; /* 调整外边距 */
+  border-radius: 4px; /* 圆角 */
+  background: transparent; /* 设置背景色为透明 */
+  /* color: #333; */
+  cursor: pointer;
+  transition: color 0.3s, transform 0.3s; /* 只保留颜色和变换动画 */
+  transform: translateY(0); /* 初始位置 */
+  
+}
+
+.tag:hover {
+  color: #333; /* 保持背景色不变，只改变文字颜色 */
+  transform: translateY(-2px); /* 悬浮时上移 */
+}
+
+.tag:active {
+  transform: translateY(0); /* 点击时恢复原位 */
+}
+
+.dropdown {
+  margin-left: 8px;
+  cursor: pointer;
+  padding: 4px 12px; /* 与标签一致的填充 */
+  border-radius: 4px; 
+}
+
+.main {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
